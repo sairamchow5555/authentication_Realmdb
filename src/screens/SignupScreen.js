@@ -1,17 +1,42 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, Image, TextInput, TouchableOpacity, Alert, ScrollView } from 'react-native';
+import Realm from 'realm';
+
+const studentsSchema = {
+    name: 'Students',
+    properties: {
+        name: 'string',
+        email: 'string',
+        password: 'string',
+    }
+}
 
 export default function SignUpScreen({ navigation }) {
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
 
-    const handleRegister = () => {
+    const handleRegister = async () => {
         if(!name || !email || !password){
             Alert.alert('Fill the req data');
             return;
         }
-        
+
+        try{
+            const realm = await Realm.open({
+                schema: [
+                    studentsSchema
+                ],
+            });
+            realm.write(() => {
+                realm.create('Students',{name, email, password})
+            })
+            Alert.alert('Successfull', 'DEtails Registered');
+            navigation.navigate('LogIn');
+        } catch(error){
+            console.error('error from signup', error);
+            Alert.alert('Registration Failed');
+        }
     };
 
   return (

@@ -1,7 +1,36 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, Image, TextInput, TouchableOpacity, Alert, ScrollView } from 'react-native';
+import Realm from 'realm';
+
+const studentsSchema = {
+    name: 'Students',
+    properties: {
+        name: 'string',
+        email: 'string',
+        password: 'string',
+    }
+}
 
 export default function LoginScreen({ navigation }) {
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+
+    const loginHandler = async () => {
+        try{
+            const realm = await Realm.open({
+                schema: [studentsSchema]
+            });
+            const students = realm.objects('Students').filtered('email=$0 AND password=$1', email, password)
+            if(students.length > 0){
+                navigation.navigate('Home')
+            }else{
+                Alert.alert('Login Failed', 'invalid email or password')
+            }
+        }catch(error){
+            console.error('Login error', error);
+            Alert.alert('Login Failed');
+        }
+    }
 
   return (
     <ScrollView>
@@ -16,8 +45,8 @@ export default function LoginScreen({ navigation }) {
                 <TextInput style={styles.inputTextField}
                     placeholder='e.g. sairam.chundru1432@gmail.com'
                     onChangeText={text => setEmail(text)}
-                    value={email}
                     keyboardType='email-address'
+                    value={email}
                 />
                 <Text style={styles.textField}>
                     Password:
@@ -29,7 +58,7 @@ export default function LoginScreen({ navigation }) {
                     value={password}
                 />
 
-                <TouchableOpacity style={styles.btn} onPress={handleLogin}>
+                <TouchableOpacity style={styles.btn} onPress={loginHandler}>
                     <Text style={styles.btnLogin}>Login</Text>
                 </TouchableOpacity>
 
